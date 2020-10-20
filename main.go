@@ -66,7 +66,7 @@ func mdProcessor(file []string, files []string, rootPath string) {
 		indent := strings.Repeat(" ", len(files) * 2) + "|"
 		if match, _ := regexp.MatchString("^```$", tmp); parsing_command && ! match {
 			command = append(command, []byte(line))
-		} else if match, _ = regexp.MatchString("#.*.md", tmp); match {
+		} else if match, _ = regexp.MatchString("#* *- .*.md", tmp); match {
 			r := regexp.MustCompile(`^.*\(`)
 			r2 := regexp.MustCompile(`\).*$`)
 			tmp = r.ReplaceAllString(tmp, "")
