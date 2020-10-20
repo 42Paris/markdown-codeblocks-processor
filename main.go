@@ -66,7 +66,7 @@ func mdProcessor(file []string, files []string, rootPath string) {
 		indent := strings.Repeat(" ", len(files) * 2) + "|"
 		if match, _ := regexp.MatchString("^```$", tmp); parsing_command && ! match {
 			command = append(command, []byte(line))
-		} else if match, _ = regexp.MatchString("- .*.md", tmp); match {
+		} else if match, _ = regexp.MatchString("#.*.md", tmp); match {
 			r := regexp.MustCompile(`^.*\(`)
 			r2 := regexp.MustCompile(`\).*$`)
 			tmp = r.ReplaceAllString(tmp, "")
@@ -90,17 +90,16 @@ func mdProcessor(file []string, files []string, rootPath string) {
 			}
 		} else if match, _ = regexp.MatchString("^```$", tmp); match && parsing_command {
 			parsing_command = false
+			if interpretor == "" {
+				interpretor = "cat"
+			}
 			fmt.Printf(indent + "Script (%s):\n", interpretor)
 			for j, line := range command {
 				fmt.Printf(indent + "%d |%d| " + string(line) + "\n", i + j - len(command), j)
 			}
 			if execute {
 				fmt.Printf(indent + "Executing. .  .\n")
-				out := "yolo"
 				run_script(interpretor, command)
-				for _, line := range out {
-					fmt.Printf(indent + "%d || " + string(line) + "\n", i - len(out))
-				}
 			}
 		} else if match, _ = regexp.MatchString("^```.*$", tmp); match {
 			interpretor = tmp[3:]
