@@ -11,6 +11,7 @@ import (
 	"bufio"
 	"strings"
 	"time"
+	"path/filepath"
 )
 
 type Action struct {
@@ -24,6 +25,9 @@ var playbook string
 var execute = false
 
 func run_script(interpretor string, command [][]byte) {
+	if interpretor == "" {
+		interpretor = "cat"
+	}
 	cmd := exec.Command("/usr/bin/env", interpretor)
 	stdin, _ := cmd.StdinPipe()
 	stdout, _ := cmd.StdoutPipe()
@@ -52,7 +56,7 @@ func run_script(interpretor string, command [][]byte) {
 	cmd.Wait()
 }
 
-func mdProcessor(file []string, files []string) {
+func mdProcessor(file []string, files []string, rootPath string) {
 	var command [][]byte
 	var interpretor string
 
@@ -69,7 +73,7 @@ func mdProcessor(file []string, files []string) {
 			tmp = r2.ReplaceAllString(tmp, "")
 			fmt.Printf(indent + "%d " + line + "\n", i)
 			fmt.Printf(indent + "Proceed File: %s\n-------------------\n", tmp)
-			path := "process/" + tmp
+			path := rootPath + tmp
 			cycle := false
 			for _, f := range(files) {
 				if f == path {
@@ -79,7 +83,7 @@ func mdProcessor(file []string, files []string) {
 			}
 			if ! cycle {
 				files = append(files, path)
-				mdProcessor(readFile(path), files)
+				mdProcessor(readFile(path), files, filepath.Dir(path) + "/")
 			} else {
 				fmt.Printf(indent + "Cycle Dependencies\n")
 				os.Exit(1)
@@ -124,30 +128,9 @@ func readFile(path string) (fileContent []string) {
 	}
 	return
 }
-/*
-func ask_menu(playbook string) {
-	if playbook == "" {
-		actions = append(actions, Action {"Create Piscine", readFile})
-		actions = append(actions, Action {"Exit", nil})
-		fmt.Println("Choose (Type a number):")
-		index := 0
-		for _, i := range actions {
-			fmt.Printf("%d) %s\n", index, string(i.Name))
-			index++
-		}
-		num := 0
-		fmt.Scanf("%d", &num)
-		if actions[num].Action != nil {
-			fmt.Printf("Calling %s. .  .\n", actions[num].Name)
-			actions[num].Action(playbook)
-		}
-	} else {
-		fmt.Printf("Calling %s. .  .\n", playbook)
-	}
-}
-*/
+
 func main() {
-	const Pg_Name = "42Fallarrest"
+	const Pg_Name = "Markdown Codeblocks Processor"
 	var files []string
 
 	flag.StringVar(&fileName, "logins", "", "File that contains logins to apply\n(One per line)")
@@ -157,5 +140,5 @@ func main() {
 	fmt.Println(Pg_Name)
 	fmt.Println(time.Now())
 	//ask_menu(playbook)
-	mdProcessor(readFile(playbook), files)
+	mdProcessor(readFile(playbook), files, filepath.Dir(playbook) + "/")
 }
